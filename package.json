@@ -1,5 +1,5 @@
 {
-  "name": "yarn",
+  "name": "@ronakforgit/yarn-harness-ci",
   "installationMethod": "unknown",
   "version": "1.23.0-0",
   "license": "BSD-2-Clause",
@@ -107,7 +107,15 @@
   "engines": {
     "node": ">=4.0.0"
   },
-  "repository": "yarnpkg/yarn",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com:ronakforgit/yarn-harness-ci.git",
+    "directory": "@ronakforgit/yarn-harness-ci"
+  }
+  ,
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/ronakforgit"
+  },
   "bin": {
     "yarn": "./bin/yarn.js",
     "yarnpkg": "./bin/yarn.js"
