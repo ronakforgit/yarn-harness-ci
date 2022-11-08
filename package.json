@@ -1,7 +1,7 @@
 {
   "name": "@ronakforgit/yarn-harness-ci",
   "installationMethod": "unknown",
-  "version": "1.23.0-0",
+  "version": "1.24.0-0",
   "license": "BSD-2-Clause",
   "preferGlobal": true,
   "description": "📦🐈 Fast, reliable, and secure dependency management.",
@@ -109,7 +109,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "ssh://git@github.com:ronakforgit/yarn-harness-ci.git",
+    "url": "https://github.com/ronakforgit/yarn-harness-ci.git",
     "directory": "@ronakforgit/yarn-harness-ci"
   }
   ,
