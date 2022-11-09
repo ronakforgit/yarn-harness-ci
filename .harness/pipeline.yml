@@ -1,0 +1,139 @@
+pipeline:
+  name: yarn-harness-build
+  identifier: yarnharnessbuild
+  projectIdentifier: NgLabs
+  orgIdentifier: default
+  tags: {}
+  properties:
+    ci:
+      codebase:
+        connectorRef: account.gitforronak
+        repoName: yarn-harness-ci
+        build: <+input>
+  stages:
+    - stage:
+        name: build
+        identifier: build
+        description: ""
+        type: CI
+        spec:
+          cloneCodebase: true
+          infrastructure:
+            type: KubernetesDirect
+            spec:
+              connectorRef: mylocalk8
+              namespace: default
+              automountServiceAccountToken: true
+              nodeSelector: {}
+              os: Linux
+          execution:
+            steps:
+              - step:
+                  type: Run
+                  name: "install dependency "
+                  identifier: install_dependency
+                  spec:
+                    connectorRef: account.harnessImage
+                    image: yarnpkg/dev:latest
+                    shell: Bash
+                    command: yarn install --frozen-lockfile
+                    imagePullPolicy: IfNotPresent
+              - parallel:
+                  - step:
+                      type: Run
+                      name: lint
+                      identifier: lint
+                      spec:
+                        connectorRef: account.harnessImage
+                        image: yarnpkg/dev:latest
+                        shell: Sh
+                        command: yarn lint
+                        imagePullPolicy: IfNotPresent
+                      description: lint
+                  - step:
+                      type: Run
+                      name: Build distribution
+                      identifier: Build_distribution
+                      spec:
+                        connectorRef: account.harnessImage
+                        image: yarnpkg/dev:latest
+                        shell: Bash
+                        command: |-
+                          if [ "$CIRCLE_BRANCH" == 'master' ]; then
+                                        ./scripts/set-dev-version.js
+                                      fi;
+                                      yarn build-dist
+                                      ./scripts/build-deb.sh
+                        imagePullPolicy: IfNotPresent
+                  - step:
+                      type: Run
+                      name: node10
+                      identifier: node10
+                      spec:
+                        connectorRef: account.harnessImage
+                        image: node:10
+                        shell: Bash
+                        command: |-
+                          if [ "$CIRCLE_BRANCH" == 'master' ]; then
+                                  ./scripts/set-dev-version.js
+                                fi;
+                                yarn build
+
+                          #Install the dependencies for the pkg-tests testsuite
+                          ./bin/yarn --cwd packages/pkg-tests
+
+                          #Tests (pkg-tests testsuite)
+                          #./bin/yarn --cwd packages/pkg-tests jest yarn.test.js
+              - step:
+                  type: Run
+                  name: publish
+                  identifier: publish
+                  spec:
+                    connectorRef: account.harnessImage
+                    image: yarnpkg/dev:latest
+                    shell: Bash
+                    command: |+
+                      # # Only NPM is handled here - All other release files are handled in a webhook.
+                      #             if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
+                      #               echo "//registry.npmjs.org/:_authToken=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" > ~/.npmrc
+                      #               ./scripts/update-npm.sh
+                      #             fi
+                      #             echo "//registry.npmjs.org/:_authToken=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" > ~/.npmrc
+                      #               ./scripts/update-npm.sh
+
+                      # registry=https://npm.pkg.github.com/ronakforgit
+                      # //npm.pkg.github.com/:_authToken=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
+
+                      # //npm.pkg.github.com/:_authToken=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
+                      # @ronakforgit:registry=https://npm.pkg.github.com
+                      # always-auth=true
+
+
+                      # registry=https://npm.pkg.github.com/@your_username
+                      # registry=https://registry.npmjs.org
+
+
+                      touch ~/.npmrc
+                      cat > ~/.npmrc <<- EOM
+                      //npm.pkg.github.com/:_authToken=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
+                      @ronakforgit:registry=https://npm.pkg.github.com
+                      always-auth=true
+                      EOM
+
+                      npm_flags=''
+                      version=`./dist/bin/yarn --version`
+                      tarball="./artifacts/yarn-v$version.tar.gz"
+                      eval "npx npm@4 publish '$tarball'"
+
+
+                  when:
+                    stageStatus: All
+                  failureStrategies: []
+          serviceDependencies:
+            - identifier: yarn
+              name: yarn
+              type: Service
+              spec:
+                connectorRef: account.harnessImage
+                image: yarnpkg/dev:latest
+                imagePullPolicy: IfNotPresent
