@@ -93,29 +93,12 @@ pipeline:
                     image: yarnpkg/dev:latest
                     shell: Bash
                     command: |+
-                      # # Only NPM is handled here - All other release files are handled in a webhook.
-                      #             if [ "${CIRCLE_PROJECT_USERNAME}" == "yarnpkg" ]; then
-                      #               echo "//registry.npmjs.org/:_authToken=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" > ~/.npmrc
-                      #               ./scripts/update-npm.sh
-                      #             fi
-                      #             echo "//registry.npmjs.org/:_authToken=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" > ~/.npmrc
-                      #               ./scripts/update-npm.sh
-
-                      # registry=https://npm.pkg.github.com/ronakforgit
-                      # //npm.pkg.github.com/:_authToken=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
-
-                      # //npm.pkg.github.com/:_authToken=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
-                      # @ronakforgit:registry=https://npm.pkg.github.com
-                      # always-auth=true
-
-
-                      # registry=https://npm.pkg.github.com/@your_username
-                      # registry=https://registry.npmjs.org
+        
 
 
                       touch ~/.npmrc
                       cat > ~/.npmrc <<- EOM
-                      //npm.pkg.github.com/:_authToken=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
+                      //npm.pkg.github.com/:_authToken=
                       @ronakforgit:registry=https://npm.pkg.github.com
                       always-auth=true
                       EOM
